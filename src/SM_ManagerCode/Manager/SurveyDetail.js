@@ -14,35 +14,41 @@ import {
 import "./SurveyDetail.css";
 import swal from "sweetalert";
 
+// Chart.js 모듈
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const SurveyDetail = () => {
-  const { curriculumId, surveyId } = useParams(); // surveyId를 받을 수 있도록 수정
+  //  curriculumId와 surveyId를 가져옴
+  const { curriculumId, surveyId } = useParams();
   const navigate = useNavigate();
-  const [surveyDetails, setSurveyDetails] = useState(null);
+
+  const [surveyDetails, setSurveyDetails] = useState(null); // 현재 진행 중인 설문 조사
   const [curriculumSimple, setCurriculumSimple] = useState(null);
-  const [endedSurveys, setEndedSurveys] = useState([]);
+  const [endedSurveys, setEndedSurveys] = useState([]); // 종료된 설문 조사
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const getToken = () => localStorage.getItem("access-token");
 
+  // 컴포넌트가 마운트될 때 데이터를 fetch
   useEffect(() => {
     const fetchSurveyData = async () => {
       try {
         const token = getToken();
         const config = { headers: { access: token } };
 
+        // 여러 API 요청을 병렬로 처리
         const [
-          surveyResponse,
-          curriculumResponse,
-          endedSurveysResponse,
+          surveyResponse, // 현재 진행 중인 설문 조사 정보
+          curriculumResponse, // 교육 과정 간략 정보
+          endedSurveysResponse, // 종료된 설문 조사 목록
         ] = await Promise.all([
           axios.get(`/managers/curriculum/${curriculumId}/survey-status/progress`, config),
           axios.get(`/managers/curriculum/${curriculumId}/survey-status/curriculum-simple`, config),
           axios.get(`/managers/curriculum/${curriculumId}/survey-status/end`, config),
         ]);
 
+        // 서버에서 받은 데이터를 상태에 저장
         setSurveyDetails(surveyResponse.data);
         setCurriculumSimple(curriculumResponse.data);
         setEndedSurveys(endedSurveysResponse.data);
@@ -54,10 +60,12 @@ const SurveyDetail = () => {
     };
 
     fetchSurveyData();
-  }, [curriculumId]);
+  }, [curriculumId]); // curriculumId가 변경될 때마다 실행
 
+  // 설문 마감
   const handleSurveyEnd = async () => {
     try {
+      // 현재 설문 정보가 없거나 surveyId가 없으면 메시지 표시
       if (!surveyDetails || !surveyDetails.surveyId) {
         swal("등록 실패", "설문 조사 ID를 찾을 수 없습니다.", "warning");
         return;
@@ -66,6 +74,7 @@ const SurveyDetail = () => {
       const token = getToken();
       const config = { headers: { access: token } };
 
+      // 설문 마감
       const response = await axios.post(
         `/managers/manage-curriculums/survey-stop/${surveyDetails.surveyId}`,
         {},
@@ -73,15 +82,18 @@ const SurveyDetail = () => {
       );
 
       if (response.status === 200) {
+        // 설문 마감 후, 종료된 설문 조사 목록을 가져옴
         const endedSurveysResponse = await axios.get(
           `/managers/curriculum/${curriculumId}/survey-status/end`,
           config
         );
         setEndedSurveys(endedSurveysResponse.data);
 
+        // 현재 설문 조사 정보를 초기화하여, 설문이 종료되었음을 UI에 반영
         setSurveyDetails(null);
         swal("설문 마감", "설문 조사가 성공적으로 마감되었습니다.", "success");
 
+        // 이전 페이지로 이동
         navigate(-1);
       } else {
         swal("설문 마감 오류", "설문 마감 중 오류가 발생했습니다.", "error");
@@ -91,8 +103,8 @@ const SurveyDetail = () => {
       swal("등록 실패", "설문 마감 중 오류가 발생했습니다.", "warning");
     }
   };
-
   if (isLoading) return <div>로딩 중...</div>;
+
   if (error) return <div>오류 발생: {error}</div>;
 
   // 설문조사가 없는 경우 처리
@@ -128,9 +140,9 @@ const SurveyDetail = () => {
     );
   }
 
-  // 설문조사에 응답한 학생 수를 기반으로 데이터를 구성합니다.
+  // 설문조사에 응답한 학생 수
   const chartData = {
-    labels: [surveyDetails.title], // 설문 제목을 라벨로 사용
+    labels: [surveyDetails.title],
     datasets: [
       {
         label: "응답한 학생 수",
@@ -146,7 +158,7 @@ const SurveyDetail = () => {
     scales: {
       y: {
         beginAtZero: true,
-        max: Math.max(surveyDetails.total, surveyDetails.completed) + 1,
+        max: Math.max(surveyDetails.total, surveyDetails.completed) + 1, //최대 학생 수에서 +1 여유값 표시
         ticks: {
           stepSize: 1, // 정수 단위로 y축 표시
         },

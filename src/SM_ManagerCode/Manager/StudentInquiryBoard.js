@@ -10,7 +10,7 @@ const StudentInquiryBoard = () => {
   const [curriculumName, setCurriculumName] = useState("");
   const [curriculumTh, setCurriculumTh] = useState("");
   const [status, setStatus] = useState("");
-  const [hasSearched, setHasSearched] = useState(false); // 조회 여부 상태 추가
+  const [hasSearched, setHasSearched] = useState(false);
 
   // 문의내역 모달창 요소
   const [contentInquiry, setContentInquiry] = useState({
@@ -48,7 +48,7 @@ const StudentInquiryBoard = () => {
   const closeModal = () => {
     setIsModalOpen(false);
   };
-
+    //학생 문의 내역
   const fetchInquiries = async () => {
     try {
       const response = await axios.get("/managers/students-inquiries");
@@ -90,7 +90,7 @@ const StudentInquiryBoard = () => {
   useEffect(() => {
     fetchInquiries();
   }, []);
-
+    //답변여부 Filter 함수 생성
   const handleFilter = () => {
     const filtered = inquiries.filter((inquiry) => {
       const curriculumMatches =

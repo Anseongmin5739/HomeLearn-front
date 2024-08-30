@@ -9,10 +9,10 @@ const StudentManagement = () => {
   const [students, setStudents] = useState([]);
   const [curriculums, setCurriculums] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState("전체");
-  const [selectedGeneration, setSelectedGeneration] = useState("전체");
+  const [selectedCourse, setSelectedCourse] = useState("전체"); // 선택된 교육 과정
+  const [selectedGeneration, setSelectedGeneration] = useState("전체"); // 선택된 기수
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // 데이터 로딩 상태 추가
+  const [isLoading, setIsLoading] = useState(true);
   const [newStudent, setNewStudent] = useState({
     name: "",
     gender: "",
@@ -21,19 +21,22 @@ const StudentManagement = () => {
     curriculum: "",
     generation: "",
     curriculumFullName: "",
-  });
+  }); // 새 학생 등록 정보
   const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState(0); // 업로드 진행률
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
-  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState([]); // 선택된 학생 목록
+
+  // 토큰을 가져옴
   const getToken = () => localStorage.getItem("access-token");
 
   useEffect(() => {
+    // 초기 데이터 fetch하는 함수
     const fetchInitialData = async () => {
       try {
         setIsLoading(true); // 데이터 로딩 시작
-        await fetchStudents();
-        await fetchCurriculums();
+        await fetchStudents(); // 학생 목록 가져오기
+        await fetchCurriculums(); // 커리큘럼 목록 가져오기
         setIsLoading(false); // 데이터 로딩 완료
       } catch (error) {
         console.error("데이터 초기화 중 오류 발생:", error);
@@ -44,6 +47,7 @@ const StudentManagement = () => {
     fetchInitialData();
   }, []);
 
+  // 학생 목록을 가져오는 함수
   const fetchStudents = async () => {
     try {
       const response = await axios.get("/managers/manage-students");
@@ -59,6 +63,7 @@ const StudentManagement = () => {
     }
   };
 
+  // 커리큘럼 목록을 가져오는 함수
   const fetchCurriculums = async () => {
     try {
       const response = await axios.get("/managers/enroll-user-ready");
@@ -73,8 +78,10 @@ const StudentManagement = () => {
     }
   };
 
+  // 검색어 변경 핸들러
   const handleSearch = (event) => setSearchTerm(event.target.value);
 
+  // 교육 과정 변경 핸들러
   const handleCourseChange = (course) => {
     const fullCourseName =
       course === "NCP"
@@ -85,15 +92,18 @@ const StudentManagement = () => {
     setNewStudent({ ...newStudent, curriculum: fullCourseName });
   };
 
+  // 기수 변경 핸들러
   const handleGenerationChange = (event) =>
     setSelectedGeneration(event.target.value);
 
+  // 검색 필터 초기화 핸들러
   const handleRefresh = () => {
     setSearchTerm("");
     setSelectedCourse("전체");
     setSelectedGeneration("전체");
   };
 
+  // 필터링된 학생 목록
   const filteredStudents = students.filter(
     (student) =>
       student.name.includes(searchTerm) &&
@@ -103,6 +113,7 @@ const StudentManagement = () => {
         student.curriculumTh === parseInt(selectedGeneration))
   );
 
+  // 새로운 학생 추가 핸들러
   const handleAddStudent = async () => {
     try {
       const token = getToken();
@@ -130,7 +141,7 @@ const StudentManagement = () => {
 
       if (response.status === 200) {
         setIsModalOpen(false);
-        fetchStudents();
+        fetchStudents(); // 학생 목록 갱신
       } else {
         console.error("학생 등록 실패");
       }
@@ -139,6 +150,7 @@ const StudentManagement = () => {
     }
   };
 
+  // 파일 업로드 핸들러
   const handleFileUpload = async () => {
     if (!selectedFile) {
       return;
@@ -161,7 +173,7 @@ const StudentManagement = () => {
         }
       );
 
-      setSelectedFile(null);
+      setSelectedFile(null); // 파일 선택 초기화
       setIsProgressModalOpen(false);
 
       swal({
@@ -176,7 +188,7 @@ const StudentManagement = () => {
         "에러 상세 정보:",
         error.response ? error.response.data : "응답 없음"
       );
-      setUploadProgress(0);
+      setUploadProgress(0); // 업로드 진행률 초기화
       setIsProgressModalOpen(false);
 
       swal({
@@ -188,6 +200,7 @@ const StudentManagement = () => {
     }
   };
 
+  // 성별 변경
   const handleGenderChange = (gender) => {
     setNewStudent({
       ...newStudent,
@@ -195,11 +208,14 @@ const StudentManagement = () => {
     });
   };
 
+  // 입력 값 변경
   const handleInputChange = (e) =>
     setNewStudent({ ...newStudent, [e.target.name]: e.target.value });
 
+  // 파일 선택
   const handleFileChange = (e) => setSelectedFile(e.target.files[0]);
 
+  // 학생 삭제
   const handleDeleteStudent = async () => {
     if (selectedStudents.length === 0) {
       swal({
@@ -218,10 +234,10 @@ const StudentManagement = () => {
           headers: { "access-token": token },
         })
       );
-      await Promise.all(deletePromises);
+      await Promise.all(deletePromises); // 선택된 모든 학생 삭제
 
-      fetchStudents();
-      setSelectedStudents([]);
+      fetchStudents(); // 학생 목록 갱신
+      setSelectedStudents([]); // 선택된 학생 목록 초기화
 
       swal({
         title: "삭제 완료",
@@ -240,6 +256,8 @@ const StudentManagement = () => {
       });
     }
   };
+
+  // 체크박스 선택
   const handleCheckboxChange = (studentId) =>
     setSelectedStudents(
       selectedStudents.includes(studentId)
@@ -247,15 +265,18 @@ const StudentManagement = () => {
         : [...selectedStudents, studentId]
     );
 
+  // 테이블 행 클릭 (학생 상세 페이지 이동)
   const handleRowClick = (studentId) => {
     window.location.href = `/managers/manage-students/${studentId}`;
   };
 
+  // 파일 선택
   const handleRemoveFile = () => {
     setSelectedFile(null);
     setUploadProgress(0);
   };
 
+  // 선택된 교육 과정에 따른 기수 필터링
   const filteredGenerations =
     curriculums.find(
       (curriculum) =>

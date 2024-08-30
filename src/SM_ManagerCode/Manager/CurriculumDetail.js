@@ -11,6 +11,8 @@ import swal from "sweetalert";
 const CurriculumDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  // 상태 변수 선언
   const [curriculum, setCurriculum] = useState({
     name: "",
     th: 0,
@@ -35,10 +37,12 @@ const CurriculumDetail = () => {
     endDate: "",
     color: "",
   });
-  const [colorWarning, setColorWarning] = useState("");
+  const [colorWarning, setColorWarning] = useState(""); // 색상 중복 경고
 
+  //  토큰 가져오기
   const getToken = () => localStorage.getItem("access-token");
 
+  // 설문 조사 데이터 가져오기
   const fetchSurveyData = async () => {
     try {
       const token = getToken();
@@ -50,9 +54,9 @@ const CurriculumDetail = () => {
         config
       );
       if (surveyResponse.data && surveyResponse.data.surveyId) {
-        setSurvey(surveyResponse.data);
+        setSurvey(surveyResponse.data); // 설문 조사 데이터 설정
       } else {
-        setSurvey(null);
+        setSurvey(null); // 설문 조사 데이터가 없는 경우 null로 설정
       }
     } catch (error) {
       console.error("설문 정보 로드 오류:", error.response);
@@ -67,6 +71,7 @@ const CurriculumDetail = () => {
           headers: { access: token },
         };
 
+        // 교육 과정 기본 정보 가져오기
         const basicResponse = await axios.get(
           `/managers/curriculum/${id}/basic`,
           config
@@ -74,8 +79,8 @@ const CurriculumDetail = () => {
 
         setCurriculum({
           ...basicResponse.data,
-          startDate: basicResponse.data.startDate, // 추가
-          endDate: basicResponse.data.endDate, // 추가
+          startDate: basicResponse.data.startDate,
+          endDate: basicResponse.data.endDate,
         });
 
         // 강사 정보 가져오기
@@ -103,7 +108,7 @@ const CurriculumDetail = () => {
         await fetchSurveyData();
       } catch (error) {
         if (error.response && error.response.status === 409) {
-          setIsWeekend(true);
+          setIsWeekend(true); // 주말인 경우
         } else {
           console.error("데이터 가져오기 오류:", error.response);
         }
@@ -113,11 +118,13 @@ const CurriculumDetail = () => {
     fetchData();
   }, [id]);
 
+  // 입력 변경 핸들러
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setUpdatedCurriculum({ ...updatedCurriculum, [name]: value });
   };
 
+  // 색상 변경 핸들러
   const handleColorChange = (color) => {
     if (isColorDuplicate(color.hex)) {
       setColorWarning("이 색상은 이미 다른 교육 과정에서 사용 중입니다.");
@@ -128,11 +135,7 @@ const CurriculumDetail = () => {
     setIsColorPickerOpen(false);
   };
 
-  const isColorDuplicate = (newColor) => {
-    const existingColors = ["#F3C41E", "#F58D11", "#B85B27"];
-    return existingColors.includes(newColor);
-  };
-
+  // 교육 과정 수정 함수
   const handleUpdateCurriculum = async () => {
     if (colorWarning) {
       swal("색상 중복 오류", "다른 색상을 선택해 주세요.", "error");
@@ -153,7 +156,7 @@ const CurriculumDetail = () => {
       );
 
       if (response.status === 200) {
-        setIsModalOpen(false);
+        setIsModalOpen(false); // 수정 모달 닫기
         swal("수정 성공", "교육 과정이 성공적으로 수정되었습니다.", "success");
         const updatedCurriculumResponse = await axios.get(
           `/managers/curriculum/${id}/basic`,
@@ -179,10 +182,12 @@ const CurriculumDetail = () => {
     }
   };
 
+  // 교육 과정 삭제 모달
   const handleDeleteCurriculum = () => {
     setIsDeleteModalOpen(true);
   };
 
+  // 교육 과정 삭제 확인
   const confirmDeleteCurriculum = async () => {
     try {
       const token = getToken();
@@ -214,7 +219,7 @@ const CurriculumDetail = () => {
             "교육 과정이 성공적으로 삭제되었습니다.",
             "success"
           );
-          navigate("/managers/manage-curriculums");
+          navigate("/managers/manage-curriculums"); // 삭제 후 관리 페이지로 이동
         } else {
           swal(
             "삭제 실패",
@@ -237,16 +242,18 @@ const CurriculumDetail = () => {
         "error"
       );
     } finally {
-      setIsDeleteModalOpen(false);
+      setIsDeleteModalOpen(false); // 삭제 모달 닫기
     }
   };
 
+  // 설문 조사 작업
   const handleSurveyAction = async () => {
     try {
       const token = getToken();
       let response;
 
       if (!survey || survey.status === "대기 중") {
+        // 설문 등록
         response = await axios.post(
           `/managers/manage-curriculums/survey-start/${id}`,
           {},
@@ -258,6 +265,7 @@ const CurriculumDetail = () => {
           }
         );
       } else if (survey.status === "진행 중") {
+        // 설문 종료
         response = await axios.post(
           `/managers/manage-curriculums/survey-stop/${survey.surveyId}`,
           {},
@@ -279,7 +287,7 @@ const CurriculumDetail = () => {
           "success"
         );
 
-        // 새로운 설문 상태를 서버에서 받아와서 갱신합니다.
+        // 새로운 설문을 서버에서 받아옴
         await fetchSurveyData();
       } else {
         swal(

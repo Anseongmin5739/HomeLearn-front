@@ -19,14 +19,16 @@ const TeacherManagement = () => {
     generation: "",
     curriculumFullName: "",
   });
-  const [selectedTeachers, setSelectedTeachers] = useState([]);
+  const [selectedTeachers, setSelectedTeachers] = useState([]); // 선택된 강사 목록
   const getToken = () => localStorage.getItem("access-token");
 
+  // 컴포넌트가 마운트될 때 실행
   useEffect(() => {
-    fetchTeachers();
-    fetchCurriculums();
+    fetchTeachers(); // 강사 목록 가져오기
+    fetchCurriculums(); // 커리큘럼 목록 가져오기
   }, []);
 
+  // 강사 목록
   const fetchTeachers = async () => {
     try {
       const response = await axios.get("/managers/manage-teachers");
@@ -39,12 +41,13 @@ const TeacherManagement = () => {
     }
   };
 
+  // 커리큘럼 목록
   const fetchCurriculums = async () => {
     try {
       const token = getToken();
       const response = await axios.get("/managers/enroll-user-ready", {
         headers: {
-          access: token, // 헤더를 Authorization에서 access로 변경
+          access: token,
         },
       });
       setCurriculums(response.data || []);
@@ -54,8 +57,10 @@ const TeacherManagement = () => {
     }
   };
 
+  // 검색어 변경
   const handleSearch = (event) => setSearchTerm(event.target.value);
 
+  // 교육 과정 변경
   const handleCourseChange = (course) => {
     const fullCourseName =
       course === "NCP"
@@ -66,15 +71,18 @@ const TeacherManagement = () => {
     setNewTeacher({ ...newTeacher, curriculum: fullCourseName });
   };
 
+  // 기수 변경
   const handleGenerationChange = (event) =>
     setSelectedGeneration(event.target.value);
 
+  // 검색 필터 초기화 핸들러
   const handleRefresh = () => {
     setSearchTerm("");
     setSelectedCourse("전체");
     setSelectedGeneration("전체");
   };
 
+  // 필터링된 강사 목록
   const filteredTeachers = (Array.isArray(teachers) ? teachers : []).filter(
     (teacher) =>
       (teacher.name?.includes(searchTerm) ||
@@ -85,6 +93,7 @@ const TeacherManagement = () => {
         teacher.curriculumTh === parseInt(selectedGeneration))
   );
 
+  // 새로운 강사 추가
   const handleAddTeacher = async () => {
     try {
       const token = getToken();
@@ -93,7 +102,7 @@ const TeacherManagement = () => {
         : 1;
       const curriculumFullName = `${newTeacher.curriculum} ${generation}기`;
 
-      // 기존에 동일한 이름과 기수로 강사가 이미 등록되어 있는지 확인
+      // 동일한 이름과 기수로 강사가 이미 등록되어 있는지 확인
       const duplicateTeacher = teachers.find(
         (teacher) =>
           teacher.name === newTeacher.name &&
@@ -126,7 +135,7 @@ const TeacherManagement = () => {
 
       if (response.status === 200) {
         setIsModalOpen(false);
-        fetchTeachers();
+        fetchTeachers(); // 강사 목록 갱신
         swal("등록 성공", "강사 등록 완료", "success");
       } else {
         console.error("강사 등록 실패");
@@ -137,9 +146,11 @@ const TeacherManagement = () => {
     }
   };
 
+  // 입력 값
   const handleInputChange = (e) =>
     setNewTeacher({ ...newTeacher, [e.target.name]: e.target.value });
 
+  // 강사 삭제
   const handleDeleteTeachers = async () => {
     try {
       const token = getToken();
@@ -149,13 +160,14 @@ const TeacherManagement = () => {
         })
       );
       await Promise.all(deletePromises);
-      fetchTeachers();
-      setSelectedTeachers([]);
+      fetchTeachers(); // 강사 목록 갱신
+      setSelectedTeachers([]); // 선택된 강사 목록 초기화
     } catch (error) {
       console.error("삭제 에러:", error);
     }
   };
 
+  // 체크박스 선택  (개별 강사 선택)
   const handleCheckboxChange = (teacherId) =>
     setSelectedTeachers(
       selectedTeachers.includes(teacherId)
@@ -163,8 +175,10 @@ const TeacherManagement = () => {
         : [...selectedTeachers, teacherId]
     );
 
+  // 테이블 행 클릭 핸들러 (강사 선택)
   const handleRowClick = (teacherId) => handleCheckboxChange(teacherId);
 
+  // 선택된 교육 과정에 따른 기수 필터링
   const filteredGenerations =
     curriculums.length > 0
       ? curriculums.find(

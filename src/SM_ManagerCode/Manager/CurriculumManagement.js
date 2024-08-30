@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { CirclePicker } from "react-color";
+import { CirclePicker } from "react-color"; // 색상 선택 라이브러리
 import axios from "../../utils/axios";
 import "./CurriculumManagement.css";
 import "../../components/Modal/ManagerModal/ManagerModal.css";
@@ -20,15 +20,18 @@ const CurriculumManagement = () => {
     color: "",
     teacherId: "",
     courseLabel: "",
-  });
+  }); // 새로운 교육 과정 정보
 
+  // 토큰을 가져옴
   const getToken = () => localStorage.getItem("access-token");
 
+  // 입력 값 변경 핸들러
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewCurriculum({ ...newCurriculum, [name]: value });
   };
 
+  // 교육 과정 유형 변경 핸들러 (NCP 또는 AWS)
   const handleCourseChange = (courseName) => {
     let courseLabel = "";
 
@@ -45,11 +48,13 @@ const CurriculumManagement = () => {
     });
   };
 
+  // 색상 변경 핸들러
   const handleColorChange = (color) => {
     setNewCurriculum({ ...newCurriculum, color: color.hex });
     setIsColorPickerOpen(false);
   };
 
+  // 새로운 교육 과정 추가 핸들러
   const handleAddCurriculum = async () => {
     // 색상 중복 체크
     if (colors.includes(newCurriculum.color.toLowerCase())) {
@@ -98,9 +103,9 @@ const CurriculumManagement = () => {
       );
 
       if (response.status === 200) {
-        setIsModalOpen(false);
-        await fetchCurriculums(newCurriculum.type);
-        await fetchEnrollReadyData();
+        setIsModalOpen(false); // 모달 닫기
+        await fetchCurriculums(newCurriculum.type); // 새로운 교육 과정 목록 갱신
+        await fetchEnrollReadyData(); // 등록 준비 데이터 갱신
         swal("등록 성공", "교육 과정이 성공적으로 등록되었습니다.", "success");
       } else {
         console.error("교육 과정 등록 실패");
@@ -120,6 +125,7 @@ const CurriculumManagement = () => {
     }
   };
 
+  // 교육 과정 등록 준비 데이터 가져오기
   const fetchEnrollReadyData = async () => {
     try {
       const token = getToken();
@@ -138,8 +144,8 @@ const CurriculumManagement = () => {
         (teacher) => !assignedTeacherIds.includes(teacher.id)
       );
 
-      setTeachers(availableTeachersFiltered);
-      setColors(usedColors.map((color) => color.toLowerCase()));
+      setTeachers(availableTeachersFiltered); // 사용 가능한 강사 목록 설정
+      setColors(usedColors.map((color) => color.toLowerCase())); // 이미 사용된 색상 목록 설정
     } catch (error) {
       console.error("등록 준비 데이터 가져오기 중 오류 발생:", error);
       setTeachers([]);
@@ -147,6 +153,7 @@ const CurriculumManagement = () => {
     }
   };
 
+  // 특정 유형의 교육 과정 목록 가져오기 (NCP 또는 AWS)
   const fetchCurriculums = async (type) => {
     try {
       const token = getToken();
@@ -168,6 +175,7 @@ const CurriculumManagement = () => {
     }
   };
 
+  // 컴포넌트가 마운트될 때 데이터를 가져온다
   useEffect(() => {
     const fetchAllData = async () => {
       await fetchCurriculums("NCP");
@@ -178,6 +186,7 @@ const CurriculumManagement = () => {
     fetchAllData();
   }, []);
 
+  // 교육 과정 목록을 렌더링
   const renderCurriculumList = (curriculums) =>
     curriculums.map((curriculum) => (
       <div key={curriculum.id} className="curriculum-card">
@@ -210,6 +219,7 @@ const CurriculumManagement = () => {
         </div>
       </div>
     ));
+
   return (
     <div className="curriculum-management">
       <h1>교육 과정</h1>

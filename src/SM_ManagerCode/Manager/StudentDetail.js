@@ -6,8 +6,11 @@ import "./StudentDetail.css";
 import swal from "sweetalert";
 
 const StudentDetail = () => {
+  // 학생 ID 가져옴
   const { id } = useParams();
   const navigate = useNavigate();
+
+  // 상태 변수 선언
   const [student, setStudent] = useState(null);
   const [curriculum, setCurriculum] = useState(null);
   const [attendance, setAttendance] = useState(null);
@@ -17,38 +20,43 @@ const StudentDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // 토큰 가져옴
   const getToken = () => localStorage.getItem("access-token");
 
   useEffect(() => {
     const token = getToken();
     const config = { headers: { access: token } };
 
+    // 학생 정보
     const fetchStudent = async () => {
       try {
         const response = await axios.get(`managers/students/basic/${id}`, config);
-        setStudent(response.data);
-        setEditedStudent(response.data);
+        setStudent(response.data); // 학생 정보 데이터 설정
+        setEditedStudent(response.data); // 수정 가능한 학생 정보 데이터 설정
       } catch (err) {
         setError("학생 정보를 불러오는데 실패했습니다.");
       } finally {
-        setLoading(false);
+        setLoading(false); // 로딩 상태 종료
       }
     };
 
+    // 교육 과정 정보
     const fetchCurriculum = async () => {
       try {
         const response = await axios.get(`managers/students/curriculum/${id}`, config);
-        setCurriculum(response.data);
+        setCurriculum(response.data); // 교육 과정 정보 설정
       } catch (err) {
         setError("커리큘럼 정보를 불러오는데 실패했습니다.");
       }
     };
 
+    // 출석 정보
     const fetchAttendance = async () => {
       try {
         const response = await axios.get(`managers/students/attendance/${id}`, config);
-        setAttendance(response.data);
+        setAttendance(response.data); // 출석 정보 설정
 
+        // 출석 정보를 이벤트 데이터로 변환하여 캘린더에 표시
         if (response.data && response.data.dateAttendanceType) {
           const eventsData = Object.entries(response.data.dateAttendanceType).map(
             ([date, type]) => ({
@@ -65,20 +73,25 @@ const StudentDetail = () => {
         setError("출석 정보를 불러오는데 실패했습니다.");
       }
     };
+
+    // 데이터를 fetch
     fetchStudent();
     fetchCurriculum();
     fetchAttendance();
   }, [id]);
 
+  // 입력 값 변경
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEditedStudent((prev) => ({ ...prev, [name]: value }));
   };
 
+  // 성별 변경
   const handleGenderChange = (gender) => {
     setEditedStudent((prev) => ({ ...prev, gender }));
   };
 
+  // 학생 정보 수정
   const handleUpdateStudent = async () => {
     try {
       const token = getToken();
@@ -106,12 +119,15 @@ const StudentDetail = () => {
     }
   };
 
+  // 출석률 계산
   const attendanceRatio = attendance && attendance.ratio !== undefined ? attendance.ratio.toFixed(1) : 0;
 
+  // 로딩 중일 때
   if (loading) {
     return <p>로딩 중...</p>;
   }
 
+  // 오류 발생 시
   if (error) {
     return <p>{error}</p>;
   }

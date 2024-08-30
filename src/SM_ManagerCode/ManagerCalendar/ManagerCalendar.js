@@ -86,7 +86,7 @@ const ManagerCalendar = () => {
                 item.getElementsByTagName("locdate")[0].textContent;
               return locdate;
             })
-            .filter((date) => {
+            .filter((date) => { // 제헌절 빼기
               const monthDay = date.substr(4, 4);
               return monthDay !== "0717";
             });

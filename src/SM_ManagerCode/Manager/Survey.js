@@ -6,7 +6,7 @@ import './Survey.css';
 const Survey = () => {
   const [surveys, setSurveys] = useState([]);
   const [loading, setLoading] = useState(true);
-
+    //설문조사 정보 가져오기
   useEffect(() => {
     const fetchSurveys = async () => {
       try {
