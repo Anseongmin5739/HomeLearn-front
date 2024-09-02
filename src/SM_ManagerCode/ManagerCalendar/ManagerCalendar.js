@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaCalendarPlus } from "react-icons/fa";
+import { FaCalendarPlus } from "react-icons/fa";// 캘린더 추가 아이콘 사용
 import axios from "../../../utils/axios";
 import "./ManagerCalendar.css";
 import ManagerModal from "../../Modal/ManagerModal/ManagerModal";
